@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GR33N Image Uploader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10B981;
+            --primary-hover: #059669;
+            --primary-glow: rgba(16, 185, 129, 0.4);
+            --bg-dark: #121212;
+            --nav-bg: #1a1a1a;
+            --border-color: #2a2a2a;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: var(--nav-bg);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .nav-logo {
+            height: 40px;
+            width: 40px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            background-image: url('https://cdn.7tv.app/paint/01JHXJFACX42RV996VE9933TB8/layer/01JMMQ2PBAK6PK2XYX8NT1QYB4/4x.webp');
+            background-size: cover;
+            background-position: center;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 100px;
+        }
+
+        .upload-container {
+            width: 100%;
+            max-width: 900px;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 40px;
+            letter-spacing: -0.05em;
+            background-image: url('https://cdn.7tv.app/paint/01JHXJFACX42RV996VE9933TB8/layer/01JMMQ2PBAK6PK2XYX8NT1QYB4/4x.webp');
+            background-size: cover;
+            background-position: center;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 2px 15px rgba(16, 185, 129, 0.2));
+        }
+
+        .drop-zone {
+            background: #181818;
+            border: 1px solid #282828;
+            border-radius: 4px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .drop-zone:hover {
+            background: #202020;
+            border-color: #444;
+        }
+
+        .icon-container {
+            color: #999;
+            display: flex;
+            align-items: center;
+        }
+
+        .drop-zone p {
+            color: #555;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading-state,
+        .success-state {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: #222;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 30%;
+            background: var(--primary);
+            animation: load 1.5s infinite linear;
+        }
+
+        @keyframes load {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(350%);
+            }
+        }
+
+        .image-preview {
+            max-width: 600px;
+            margin: 32px auto;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #2a2a2a;
+        }
+
+        .image-preview img {
+            width: 100%;
+            display: block;
+        }
+
+        .link-container {
+            display: flex;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            padding: 4px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .link-container input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #eee;
+            padding: 12px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: #2a2a2a;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo-container">
+            <img src="https://cdn.7tv.app/emote/01HVH0MAR80008QNPYB69M24KJ/4x.gif" alt="Logo" class="nav-logo">
+            <span class="logo-text">GR33N</span>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="upload-container">
+            <!-- Initial Upload View -->
+            <div id="upload-view">
+                <h1>Upload a file</h1>
+                <div class="drop-zone" id="drop-zone">
+                    <div class="icon-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                            </path>
+                        </svg>
+                    </div>
+                    <p>Click here, Drag and Drop or paste from Clipboard</p>
+                </div>
+                <input type="file" id="file-input" class="file-input" accept="image/*">
+            </div>
+
+            <div class="loading-state hidden" id="loading-state">
+                <p>Uploading...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="success-state hidden" id="success-state">
+                <h2>Uploaded Successfully!</h2>
+                <div class="image-preview"><img id="uploaded-image" src="" alt="Uploaded image"></div>
+                <div class="link-container">
+                    <input type="text" id="link-input" readonly>
+                    <button class="btn" id="copy-btn">Copy Link</button>
+                </div>
+                <button class="btn btn-secondary" id="upload-another-btn">Upload Another</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const uploadView = document.getElementById('upload-view');
+        const loadingState = document.getElementById('loading-state');
+        const successState = document.getElementById('success-state');
+        const uploadedImage = document.getElementById('uploaded-image');
+        const linkInput = document.getElementById('link-input');
+        const copyBtn = document.getElementById('copy-btn');
+        const uploadAnotherBtn = document.getElementById('upload-another-btn');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', function () {
+            if (this.files.length) uploadFile(this.files[0]);
+        });
+
+        function uploadFile(file) {
+            uploadView.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            fetch('/upload', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    loadingState.classList.add('hidden');
+                    successState.classList.remove('hidden');
+                    uploadedImage.src = data.url;
+                    linkInput.value = data.url;
+                })
+                .catch(err => {
+                    alert('Upload failed: ' + err.message);
+                    loadingState.classList.add('hidden');
+                    uploadView.classList.remove('hidden');
+                });
+        }
+
+        copyBtn.addEventListener('click', () => {
+            linkInput.select();
+            navigator.clipboard.writeText(linkInput.value).then(() => {
+                copyBtn.innerText = 'Copied!';
+                setTimeout(() => copyBtn.innerText = 'Copy Link', 2000);
+            });
+        });
+
+        uploadAnotherBtn.addEventListener('click', () => {
+            successState.classList.add('hidden');
+            uploadView.classList.remove('hidden');
+            fileInput.value = '';
+        });
+    </script>
+</body>
+
+</html>
