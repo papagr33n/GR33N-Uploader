@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const { sql } = require('@vercel/postgres');
 
 const app = express();
 const port = 3000;
@@ -29,20 +31,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-const linksFile = path.join(__dirname, 'links.json');
-let customLinks = {};
-if (fs.existsSync(linksFile)) {
-    try {
-        customLinks = JSON.parse(fs.readFileSync(linksFile, 'utf8'));
-    } catch (e) {
-        console.error('Error parsing links.json', e);
-    }
-}
-
 app.use(express.static('public'));
 
 // Handle upload
-app.post('/upload', upload.single('image'), (req, res) => {
+app.post('/upload', upload.single('image'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded.' });
     }
@@ -51,28 +43,40 @@ app.post('/upload', upload.single('image'), (req, res) => {
     const host = req.get('host');
     let fileId = path.parse(req.file.filename).name; // e.g. "a1b2c3"
     
-    // Map mapping (now just random ID)
-    customLinks[fileId] = req.file.filename;
-    fs.writeFileSync(linksFile, JSON.stringify(customLinks, null, 2));
-    
-    const fullUrl = `${protocol}://${host}/${fileId}`;
-    
-    res.json({
-        message: 'File uploaded successfully',
-        url: fullUrl
-    });
+    try {
+        // Insert into PostgreSQL
+        await sql`INSERT INTO images (id, filename) VALUES (${fileId}, ${req.file.filename}) ON CONFLICT DO NOTHING;`;
+        
+        const fullUrl = `${protocol}://${host}/${fileId}`;
+        
+        res.json({
+            message: 'File uploaded successfully',
+            url: fullUrl
+        });
+    } catch (error) {
+        console.error('Error saving image metadata:', error);
+        res.status(500).json({ error: 'Failed to save image metadata.' });
+    }
 });
 
 // Route for serving images from root
-app.get('/:id', (req, res, next) => {
-    const filename = customLinks[req.params.id];
-    if (filename) {
-        res.sendFile(path.join(__dirname, 'uploads', filename));
-    } else {
-        next(); // pass to 404 handler
+app.get('/:id', async (req, res, next) => {
+    try {
+        const { rows } = await sql`SELECT filename FROM images WHERE id = ${req.params.id} LIMIT 1;`;
+        
+        if (rows.length > 0) {
+            const filename = rows[0].filename;
+            res.sendFile(path.join(__dirname, 'uploads', filename));
+        } else {
+            next(); // pass to 404 handler
+        }
+    } catch (error) {
+        console.error('Error fetching image metadata:', error);
+        next();
     }
 });
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
+
